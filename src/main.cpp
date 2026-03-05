@@ -1,7 +1,5 @@
-#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
-#include "esp_log.h"
-
 #include <Arduino.h>
+#include "esp_log.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -24,6 +22,11 @@ void setup() {
   Serial.println();
   Serial.println();
   Serial.println(F("RS485 RTU SDM120***"));
+
+  // Set runtime log level to VERBOSE for our tags
+  esp_log_level_set("*", ESP_LOG_VERBOSE);
+  // Silence noisy NimBLE logs
+  esp_log_level_set("NimBLEAdvertising", ESP_LOG_NONE);
 
   bluetooth_service_init();
 

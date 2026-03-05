@@ -59,22 +59,24 @@ void set_manufacturer_data(uint8_t index) {
     )
   );
 
-  ESP_LOGD(TAG, "Manufacturer data has been set");
+  ESP_LOGI(TAG, "Manufacturer data set for index %d", index);
+  Serial.printf("Manufacturer data set for index %d\n", index);
 
   pAdvertising->start();
 
-  char buffer[256]; // Adjust the buffer size as needed
+  char buffer[256];
   int offset = 0;
-  offset += snprintf(buffer + offset, sizeof(buffer) - offset, "Advertising index: %d, data: ", index);
+  offset += snprintf(buffer + offset, sizeof(buffer) - offset, "MFR_ID: %04X | Data[%d]: ", MANUFACTURER_ID, index);
 
-  for (int i = 0; i < 11; i++) {
+  for (int i = 0; i < MANUFACTURER_DATA_LENGTH; i++) {
     offset += snprintf(buffer + offset, sizeof(buffer) - offset, "%02X", manufacturerDataList[index][i]);
-    if (i < 10) {
-      offset += snprintf(buffer + offset, sizeof(buffer) - offset, ", ");
+    if (i < MANUFACTURER_DATA_LENGTH - 1) {
+      offset += snprintf(buffer + offset, sizeof(buffer) - offset, " ");
     }
   }
 
-  ESP_LOGD(TAG, "%s", buffer);
+  ESP_LOGI(TAG, "%s", buffer);
+  Serial.println(buffer);
 }
 
 void muse_advertising_task(void *pvParameters) {
@@ -116,6 +118,11 @@ void muse_set_intensity(float intensity_percent) {
     ESP_LOGI(
       TAG,
       "Intensity %f received, advertising vibration: %d",
+      intensity_percent,
+      _intensity_value
+    );
+    Serial.printf(
+      "Intensity %f received, advertising vibration: %d\n",
       intensity_percent,
       _intensity_value
     );
