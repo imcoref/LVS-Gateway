@@ -26,6 +26,8 @@ class ConnectionEventHandler : public NimBLEServerCallbacks {
 
     void onDisconnect(NimBLEServer *pServer) {
         Serial.println("Client disconnected from the lovense service");
+        // Re-start advertising so client can reconnect
+        NimBLEDevice::startAdvertising();
     }
 };
 
@@ -111,7 +113,7 @@ std::string set_vibration_speed(const std::string& command) {
     int speedInt = std::stoi(speedStr);
 
     // Convert the integer speed value to a floating-point value between 0.0 and 1.0
-    float speed = static_cast<float>(speedInt) / 20.0f;
+    float speed = static_cast<float>(speedInt) / 10.0f;
 
     // For demonstration purposes, let's just print the speedFloat value to Serial
     Serial.print("Vibration Speed: ");
@@ -157,7 +159,7 @@ void lovense_init() {
     // Create a new characteristic for the lovense data
     pLovenseCharacteristic = pService->createCharacteristic(
         LOVENSE_CHARACTERISTIC_UUID,
-        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE_NR
     );
  
 

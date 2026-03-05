@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LVS-Gateway Controller</title>
+  <style>
+    :root {
+      --bg: #1a1a2e;
+      --card: #16213e;
+      --accent: #e94560;
+      --accent-glow: rgba(233, 69, 96, 0.4);
+      --text: #eaeaea;
+      --text-dim: #8a8a9a;
+      --success: #4ecca3;
+      --danger: #e94560;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--card);
+      border-radius: 24px;
+      padding: 40px 32px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      margin-bottom: 32px;
+    }
+
+    /* Connection Section */
+    .connection {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--danger);
+      transition: background 0.3s;
+    }
+
+    .status-dot.connected {
+      background: var(--success);
+      box-shadow: 0 0 8px rgba(78, 204, 163, 0.5);
+    }
+
+    .status-text {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: white;
+    }
+
+    .btn-connect {
+      background: var(--accent);
+    }
+
+    .btn-connect:hover {
+      background: #d63a52;
+      transform: translateY(-1px);
+    }
+
+    .btn-connect:active {
+      transform: translateY(0);
+    }
+
+    .btn-disconnect {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-disconnect:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Slider Section */
+    .slider-section {
+      opacity: 0.4;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .slider-section.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .value-display {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .value-number {
+      font-size: 4rem;
+      font-weight: 700;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent), #ff6b8a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .value-label {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .speed-display {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      margin-bottom: 28px;
+    }
+
+    .speed-display span {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Custom Range Slider */
+    .slider-wrapper {
+      padding: 0 4px;
+      margin-bottom: 16px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+      transition: background 0.2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 4px 12px var(--accent-glow);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+
+    input[type="range"]::-webkit-slider-thumb:active {
+      transform: scale(1.05);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 4px;
+      margin-bottom: 24px;
+    }
+
+    .slider-labels span {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* Stop Button */
+    .btn-stop {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: rgba(233, 69, 96, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(233, 69, 96, 0.3);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-stop:hover {
+      background: rgba(233, 69, 96, 0.25);
+    }
+
+    /* Log */
+    .log-section {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .log-header {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .log {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      padding: 12px;
+      max-height: 120px;
+      overflow-y: auto;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.75rem;
+      line-height: 1.6;
+      color: var(--text-dim);
+    }
+
+    .log .sent {
+      color: var(--accent);
+    }
+
+    .log .ok {
+      color: var(--success);
+    }
+
+    .log .error {
+      color: #ff6b6b;
+    }
+
+    /* Compatibility Warning */
+    .warning {
+      background: rgba(255, 193, 7, 0.1);
+      border: 1px solid rgba(255, 193, 7, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      color: #ffc107;
+      font-size: 0.85rem;
+      display: none;
+    }
+
+    .warning a {
+      color: #ffd54f;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>LVS-Gateway</h1>
+    <p class="subtitle">Bluetooth Vibration Controller</p>
+
+    <div class="warning" id="warning">
+      Web Bluetooth wird von diesem Browser nicht unterstützt.<br>
+      Bitte verwende <a href="https://www.google.com/chrome/" target="_blank">Google Chrome</a> oder Edge.
+    </div>
+
+    <div id="mainUI">
+      <!-- Connection -->
+      <div class="connection">
+        <div class="status">
+          <div class="status-dot" id="statusDot"></div>
+          <span class="status-text" id="statusText">Nicht verbunden</span>
+        </div>
+        <button class="btn btn-connect" id="connectBtn" onclick="toggleConnection()">Verbinden</button>
+      </div>
+
+      <!-- Slider -->
+      <div class="slider-section" id="sliderSection">
+        <div class="value-display">
+          <div class="value-number" id="valueDisplay">0</div>
+          <div class="value-label">Intensität</div>
+        </div>
+
+        <div class="speed-display">
+          Vibration Speed: <span id="speedDisplay">0.00</span>
+        </div>
+
+        <div class="slider-wrapper">
+          <input type="range" id="slider" min="0" max="10" value="0" step="1"
+            oninput="onSliderChange(this.value)">
+        </div>
+        <div class="slider-labels">
+          <span>Aus</span>
+          <span>5</span>
+          <span>10</span>
+        </div>
+
+        <button class="btn-stop" onclick="sendStop()">⏹ Stopp</button>
+
+        <div class="log-section">
+          <div class="log-header">Protokoll</div>
+          <div class="log" id="log"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SERVICE_UUID = '0000fff0-0000-1000-8000-00805f9b34fb';
+    const CHARACTERISTIC_UUID = '0000fff0-0000-1000-8000-00805f9b34fb';
+
+    let device = null;
+    let characteristic = null;
+    let isConnected = false;
+    let sendTimeout = null;
+
+    // Check Web Bluetooth support
+    if (!navigator.bluetooth) {
+      document.getElementById('warning').style.display = 'block';
+      document.getElementById('mainUI').style.display = 'none';
+    }
+
+    async function toggleConnection() {
+      if (isConnected) {
+        disconnect();
+      } else {
+        await connect();
+      }
+    }
+
+    async function connect() {
+      try {
+        log('Suche Gerät...', 'sent');
+
+        device = await navigator.bluetooth.requestDevice({
+          filters: [{ name: 'LVS-Gateway01' }],
+          optionalServices: [SERVICE_UUID]
+        });
+
+        log(`Gerät gefunden: ${device.name || 'Unbekannt'}`, 'ok');
+
+        device.addEventListener('gattserverdisconnected', onDisconnected);
+
+        log('Verbinde...', 'sent');
+        const server = await device.gatt.connect();
+
+        log('Service wird geladen...', 'sent');
+        const service = await server.getPrimaryService(SERVICE_UUID);
+
+        log('Characteristic wird geladen...', 'sent');
+        characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+
+        setConnected(true);
+        log('Verbunden!', 'ok');
+
+      } catch (error) {
+        log(`Fehler: ${error.message}`, 'error');
+        setConnected(false);
+      }
+    }
+
+    function disconnect() {
+      if (device && device.gatt.connected) {
+        device.gatt.disconnect();
+      }
+      setConnected(false);
+      log('Getrennt.', 'sent');
+    }
+
+    function onDisconnected() {
+      setConnected(false);
+      log('Verbindung verloren.', 'error');
+    }
+
+    function setConnected(connected) {
+      isConnected = connected;
+      const dot = document.getElementById('statusDot');
+      const text = document.getElementById('statusText');
+      const btn = document.getElementById('connectBtn');
+      const section = document.getElementById('sliderSection');
+
+      if (connected) {
+        dot.classList.add('connected');
+        text.textContent = device?.name || 'Verbunden';
+        btn.textContent = 'Trennen';
+        btn.classList.remove('btn-connect');
+        btn.classList.add('btn-disconnect');
+        section.classList.add('active');
+      } else {
+        dot.classList.remove('connected');
+        text.textContent = 'Nicht verbunden';
+        btn.textContent = 'Verbinden';
+        btn.classList.remove('btn-disconnect');
+        btn.classList.add('btn-connect');
+        section.classList.remove('active');
+        characteristic = null;
+      }
+    }
+
+    function onSliderChange(value) {
+      const intValue = parseInt(value);
+      document.getElementById('valueDisplay').textContent = intValue;
+      document.getElementById('speedDisplay').textContent = (intValue / 10).toFixed(2);
+
+      // Debounce: wait 100ms before sending
+      clearTimeout(sendTimeout);
+      sendTimeout = setTimeout(() => {
+        if (intValue === 0) {
+          sendCommand('PowerOff;');
+        } else {
+          sendCommand(`Vibrate:${intValue};`);
+        }
+      }, 100);
+    }
+
+    async function sendStop() {
+      document.getElementById('slider').value = 0;
+      document.getElementById('valueDisplay').textContent = '0';
+      document.getElementById('speedDisplay').textContent = '0.00';
+      await sendCommand('PowerOff;');
+    }
+
+    async function sendCommand(command) {
+      if (!characteristic) {
+        log('Nicht verbunden!', 'error');
+        return;
+      }
+
+      try {
+        const encoder = new TextEncoder();
+        await characteristic.writeValueWithoutResponse(encoder.encode(command));
+        log(`Gesendet: ${command}`, 'sent');
+      } catch (error) {
+        log(`Sendefehler: ${error.message}`, 'error');
+      }
+    }
+
+    function log(message, type = '') {
+      const logEl = document.getElementById('log');
+      const line = document.createElement('div');
+      line.className = type;
+      const time = new Date().toLocaleTimeString('de-DE');
+      line.textContent = `[${time}] ${message}`;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+  </script>
+</body>
+
+</html>

@@ -6,6 +6,10 @@ void bluetooth_service_init() {
   // Initialize the NimBLE device
   NimBLEDevice::init("LVS-Gateway01");
 
+  // Disable security - no pairing/bonding required
+  NimBLEDevice::setSecurityAuth(false, false, false);
+  NimBLEDevice::setSecurityIOCap(BLE_HS_IO_NO_INPUT_OUTPUT);
+
   // Create a new server
   NimBLEServer *pServer = NimBLEDevice::createServer();
 
