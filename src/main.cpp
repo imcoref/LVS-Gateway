@@ -8,6 +8,7 @@
 
 #include "muse.h"
 #include "lovense.h"
+#include "web_server.h"
 
 static const char* TAG = "main";
 
@@ -23,10 +24,8 @@ void setup() {
   Serial.println();
   Serial.println(F("RS485 RTU SDM120***"));
 
-  // Set runtime log level to VERBOSE for our tags
-  esp_log_level_set("*", ESP_LOG_VERBOSE);
-  // Silence noisy NimBLE logs
-  esp_log_level_set("NimBLEAdvertising", ESP_LOG_NONE);
+  // Set runtime log level to INFO
+  esp_log_level_set("*", ESP_LOG_INFO);
 
   bluetooth_service_init();
 
@@ -36,10 +35,11 @@ void setup() {
 
   bluetooth_service_start();
 
+  web_server_init();
+
   ESP_LOGI(TAG, "SETUP DONE.");
 }
 
 void loop() {
-  // In this example, the main loop is not used since the lovense sensor task runs independently.
-  // You can add other tasks or functionality here if needed.
+  web_server_loop();
 }
